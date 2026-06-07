@@ -55,5 +55,3 @@ export interface RoleAccess {
   canCreateAssignment: boolean;
   canDeleteAssignment: boolean;
 }
-}
-}

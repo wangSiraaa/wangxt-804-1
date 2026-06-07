@@ -64,7 +64,7 @@ export const checkWorkstationConflict = (
       return {
         hasConflict: true,
         conflictType: 'workstation',
-        message: `该工位在 ${formatTimeRange(aStart, aEnd)} 已有分配`,
+        message: `该工位在 ${formatTimeRange(assignment.startTime, assignment.endTime)} 已有分配`,
         conflictingAssignment: assignment
       };
     }
