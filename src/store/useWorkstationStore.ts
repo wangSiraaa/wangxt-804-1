@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Assignment, Workstation, Vehicle, User, ConflictResult } from "@/types";
+import type { Assignment, Workstation, Vehicle, User, ConflictResult, Annotation } from "@/types";
 import { storage, generateId } from "@/utils/storage";
 import { checkAllConflicts } from "@/utils/conflictUtils";
 import { mockWorkstations, mockVehicles, getMockAssignments } from "@/data/mockData";
@@ -9,6 +9,7 @@ interface WorkstationState {
   vehicles: Vehicle[];
   technicians: User[];
   assignments: Assignment[];
+  annotations: Annotation[];
   initData: (users: User[]) => void;
   addAssignment: (data: Omit<Assignment, "id" | "createdAt" | "updatedAt">) => { success: boolean; conflict?: ConflictResult };
   updateAssignment: (id: string, data: Partial<Assignment>) => { success: boolean; conflict?: ConflictResult };
@@ -17,6 +18,9 @@ interface WorkstationState {
   getAssignmentsByDate: (date: string) => Assignment[];
   getAssignmentsByTechnician: (techId: string) => Assignment[];
   getAssignmentById: (id: string) => Assignment | undefined;
+  addAnnotation: (data: Omit<Annotation, "id" | "createdAt">) => void;
+  getAnnotationsByAssignmentId: (assignmentId: string) => Annotation[];
+  deleteAnnotation: (id: string) => void;
 }
 
 export const useWorkstationStore = create<WorkstationState>((set, get) => ({
@@ -24,6 +28,7 @@ export const useWorkstationStore = create<WorkstationState>((set, get) => ({
   vehicles: storage.get<Vehicle[]>("vehicles", []),
   technicians: [],
   assignments: storage.get<Assignment[]>("assignments", []),
+  annotations: storage.get<Annotation[]>("annotations", []),
 
   initData: (users: User[]) => {
     const technicians = users.filter(u => u.role === "technician");
@@ -98,5 +103,26 @@ export const useWorkstationStore = create<WorkstationState>((set, get) => ({
 
   getAssignmentsByDate: (date) => get().assignments.filter(a => a.startTime.startsWith(date)),
   getAssignmentsByTechnician: (techId) => get().assignments.filter(a => a.technicianId === techId),
-  getAssignmentById: (id) => get().assignments.find(a => a.id === id)
+  getAssignmentById: (id) => get().assignments.find(a => a.id === id),
+
+  addAnnotation: (data) => {
+    const { annotations } = get();
+    const now = new Date().toISOString();
+    const newAnnotation: Annotation = { ...data, id: generateId(), createdAt: now };
+    const newAnnotations = [...annotations, newAnnotation];
+    storage.set("annotations", newAnnotations);
+    set({ annotations: newAnnotations });
+  },
+
+  getAnnotationsByAssignmentId: (assignmentId) => {
+    return get().annotations
+      .filter(a => a.assignmentId === assignmentId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  },
+
+  deleteAnnotation: (id) => {
+    const newAnnotations = get().annotations.filter(a => a.id !== id);
+    storage.set("annotations", newAnnotations);
+    set({ annotations: newAnnotations });
+  }
 }));

@@ -55,3 +55,22 @@ export interface RoleAccess {
   canCreateAssignment: boolean;
   canDeleteAssignment: boolean;
 }
+
+export type AnnotationType = 'repair_note' | 'reception_note' | 'supervisor_conclusion';
+
+export interface Annotation {
+  id: string;
+  assignmentId: string;
+  type: AnnotationType;
+  content: string;
+  authorId: string;
+  authorName: string;
+  authorRole: UserRole;
+  createdAt: string;
+}
+
+export const AnnotationTypeLabels: Record<AnnotationType, string> = {
+  repair_note: '维修说明',
+  reception_note: '前台备注',
+  supervisor_conclusion: '主管结论'
+};
